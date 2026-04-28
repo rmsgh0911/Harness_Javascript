@@ -7,7 +7,7 @@
 목표는 두 가지다.
 
 1. 새 JavaScript 프로젝트에 `Harness`를 빠르게 초기화한다.
-2. goose를 주요 작업자로 두고, ollama에 설치된 로컬 LLM을 goose가 사용하는 구조로 작업 상태와 검증 흐름을 이어받게 한다.
+2. Codex 또는 Claude Code를 기본 작업자로 두고 작업 상태와 검증 흐름을 이어받게 한다.
 
 ## 사용 시나리오
 
@@ -15,13 +15,13 @@
 
 - `"이 프로젝트 기준으로 Harness를 초기화해줘"`
 - `"JavaScript 프로젝트용 Harness로 이식해줘"`
-- `"goose + ollama 로컬 모델 기준으로 구조를 바꿔줘"`
+- `"Codex나 Claude Code 기준으로 작업자 구조를 정리해줘"`
 
 ## 기본 구조
 
 - `HARNESS.md`: 모든 작업자가 먼저 읽는 운영 규칙
 - `AGENTS.md`: Codex 계열 작업자를 위한 얇은 라우터
-- `GOOSE.md`: goose 작업자를 위한 얇은 라우터
+- `CLAUDE.md`: Claude Code 작업자를 위한 얇은 라우터
 - `Harness/state.md`: 최신 확정 상태
 - `Harness/next.md`: 남은 작업과 수동 판단 항목
 - `Harness/cycles/`: 날짜별 짧은 작업 기록
@@ -33,7 +33,7 @@
 ## 초기화 방법
 
 1. 대상 JavaScript 프로젝트 루트에 이 템플릿의 `Harness/`를 복사한다.
-2. 루트 `HARNESS.md`, `AGENTS.md`, `GOOSE.md`를 복사하거나 기존 지시 파일에 라우팅 문구를 병합한다.
+2. 루트 `HARNESS.md`, `AGENTS.md`, `CLAUDE.md`를 복사하거나 기존 지시 파일에 라우팅 문구를 병합한다.
 3. `Harness/config/project.json`을 실제 프로젝트 기준으로 채운다.
 4. `Harness/state.md`에 현재 프로젝트 상태를 기록한다.
 5. `Harness/next.md`에 다음 작업 후보와 수동 검증 필요 항목을 기록한다.
@@ -59,7 +59,7 @@ Harness/scripts/build_verify.cmd -Mode Build
 
 ## 작업자 운영
 
-기본 주 작업자는 goose다. goose는 ollama에 설치된 로컬 LLM을 모델 백엔드로 사용할 수 있다. Codex와 Claude Code는 보조 또는 이식 작업자로 계속 사용할 수 있다.
+기본 작업자는 현재 사용하는 Codex 앱 또는 Claude Code 앱이다. 두 작업자는 각각 `AGENTS.md`, `CLAUDE.md`를 통해 공통 규칙인 `HARNESS.md`를 읽는다.
 
 작업자를 바꿀 때는 자동 전환하지 않고 사람이 명시한다. 새 작업자는 긴 이전 대화보다 아래 파일을 먼저 읽는다.
 

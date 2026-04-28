@@ -15,14 +15,10 @@
     "allowed": true,
     "requires_human_assignment": true,
     "record_in_cycle_log": true,
-    "preferred_workers": [
-      "goose"
-    ],
     "recommended_when": [
       "model_quota_exhausted",
       "context_too_large",
-      "human_requested_switch",
-      "goose_with_ollama_is_better_for_private_context"
+      "human_requested_switch"
     ],
     "new_worker_reads_first": [
       "HARNESS.md",

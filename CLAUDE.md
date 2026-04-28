@@ -8,7 +8,7 @@
 
 ## Claude Code 주 작업자 동작
 
-- goose 없이 Claude Code가 보조 작업자로 동작할 수 있다.
+- Codex 없이 Claude Code가 단독 주 작업자로 동작할 수 있다.
 - 작업자 전환 기록이 필요하면 `HARNESS.md`의 작업자 전환 규칙을 따른다.
 - 새 작업자로 이어받을 때는 긴 이전 대화보다 `Harness/state.md`, `Harness/next.md`, 오늘 `Harness/cycles/`, 현재 `git status/diff`를 우선 읽는다.
 

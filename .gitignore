@@ -45,7 +45,6 @@ Thumbs.db
 
 # Local agent workspaces and caches
 .claude/
-.goose/
 
 # Codex
 # Keep shared Codex project files in Git:

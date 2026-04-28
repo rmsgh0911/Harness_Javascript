@@ -69,12 +69,12 @@
 
 ## 작업자 전환
 
-- 주요 작업자는 goose다. goose는 ollama에 설치된 로컬 LLM을 모델 백엔드로 사용할 수 있다.
-- Codex 앱, Claude Code, 기타 에이전트는 보조 작업자로 사용할 수 있다.
+- 작업자는 Codex 앱 또는 Claude Code 앱 중 하나를 기본으로 사용한다.
+- Codex 토큰이 부족하거나 컨텍스트가 과밀해지면 사람이 명시한 경우에만 다른 작업자로 전환한다.
 - 작업자 전환은 자동으로 하지 않는다.
 - 전환 시 오늘 `cycles/YYYY-MM-DD.md`에 전환 이유와 새 작업자가 먼저 볼 범위를 짧게 기록한다.
 - 새 작업자는 긴 이전 대화보다 `Harness/state.md`, `Harness/next.md`, 오늘 `cycles/`, 현재 `git status/diff`를 우선 읽는다.
-- 인증 정보, API 키, ollama 모델명, 포트, 개인 로컬 경로는 Harness에 저장하지 않는다.
+- 인증 정보, API 키, 개인 로컬 경로는 Harness에 저장하지 않는다.
 
 ## JavaScript 주의사항
 

@@ -1,31 +1,20 @@
 {
   "version": 1,
   "purpose": "worker_instruction_map",
-  "default_worker": "goose",
-  "model_provider": {
-    "name": "ollama",
-    "role": "local_llm_runtime",
-    "notes": "ollama는 독립 작업자가 아니라 goose가 사용할 수 있는 로컬 LLM 런타임이다. 모델명, 포트, 개인 경로는 Harness에 저장하지 않는다."
-  },
+  "default_worker": "current_app",
   "shared_rules": "HARNESS.md",
   "supported_workers": {
-    "goose": {
-      "display_name": "Goose",
-      "instruction_file": "GOOSE.md",
-      "can_be_primary_worker": true,
-      "notes": "goose CLI 또는 앱에서 작업할 때 GOOSE.md를 통해 HARNESS.md를 읽는다. 모델 백엔드는 ollama에 설치된 로컬 LLM을 사용할 수 있다."
-    },
     "codex": {
       "display_name": "Codex",
       "instruction_file": "AGENTS.md",
-      "can_be_primary_worker": false,
-      "notes": "Codex 앱 또는 CLI에서 보조 작업자로 작업할 때 AGENTS.md를 통해 HARNESS.md를 읽는다."
+      "can_be_primary_worker": true,
+      "notes": "Codex 앱 또는 CLI에서 작업할 때 AGENTS.md를 통해 HARNESS.md를 읽는다."
     },
     "claude_code": {
       "display_name": "Claude Code",
       "instruction_file": "CLAUDE.md",
-      "can_be_primary_worker": false,
-      "notes": "Claude Code 앱 또는 CLI에서 보조 작업자로 작업할 때 CLAUDE.md를 통해 HARNESS.md를 읽는다."
+      "can_be_primary_worker": true,
+      "notes": "Claude Code 앱 또는 CLI에서 작업할 때 CLAUDE.md를 통해 HARNESS.md를 읽는다."
     }
   },
   "handoff": {
