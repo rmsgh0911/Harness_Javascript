@@ -1,21 +1,38 @@
 {
-  "project_name": "",
-  "uproject_file": "",
-  "engine_version": "",
-  "editor_startup_map": "",
-  "harness_level_path": "/Game/Harness/HarnessTestLevel",
-  "default_game_mode_class": "",
-  "required_classes": [],
-  "required_assets": [],
-  "required_source_markers": {},
-  "required_config_markers": {},
-  "required_uproject_plugins": [],
-  "harness_level_required_actor_labels": [],
-  "build": {
-    "engine_root": "",
-    "editor_target_name": "",
-    "game_target_name": "",
-    "platform": "Win64",
-    "configuration": "Development"
+  "project_name": "Harness_Javascript",
+  "project_type": "javascript",
+  "repository_url": "https://github.com/rmsgh0911/Harness_Javascript.git",
+  "package_json": "package.json",
+  "package_manager": "auto",
+  "source_roots": [
+    "src",
+    "app",
+    "lib",
+    "packages"
+  ],
+  "test_roots": [
+    "test",
+    "tests",
+    "__tests__"
+  ],
+  "required_files": [],
+  "required_package_fields": [
+    "scripts"
+  ],
+  "required_scripts": [],
+  "optional_scripts": [
+    "typecheck",
+    "check",
+    "lint",
+    "test",
+    "build"
+  ],
+  "commands": {
+    "install": "install",
+    "check": "check",
+    "typecheck": "typecheck",
+    "lint": "lint",
+    "test": "test",
+    "build": "build"
   }
 }

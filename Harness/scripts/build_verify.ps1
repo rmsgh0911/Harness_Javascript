@@ -1,6 +1,6 @@
 param(
-    [ValidateSet("Editor", "Game", "ProjectFiles")]
-    [string]$Mode = "Editor"
+    [ValidateSet("Install", "Check", "Typecheck", "Lint", "Test", "Build")]
+    [string]$Mode = "Check"
 )
 
 $ErrorActionPreference = "Stop"
@@ -10,12 +10,12 @@ function Fail($Message) {
 }
 
 function Get-ProjectDir {
-    return (Resolve-Path (Join-Path $PSScriptRoot "..\\..")).Path
+    return (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 }
 
 function Read-ProjectConfig {
     $projectDir = Get-ProjectDir
-    $configPath = Join-Path $projectDir "Harness\\config\\project.json"
+    $configPath = Join-Path $projectDir "Harness\config\project.json"
     if (-not (Test-Path $configPath)) {
         Fail "Missing Harness config: $configPath"
     }
@@ -23,99 +23,110 @@ function Read-ProjectConfig {
     return Get-Content $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 
-function Resolve-UprojectPath($ProjectDir, $Config) {
-    if ($Config.uproject_file) {
-        $uprojectPath = Join-Path $ProjectDir $Config.uproject_file
-        if (-not (Test-Path $uprojectPath)) {
-            Fail "Missing uproject file: $uprojectPath"
-        }
-        return (Resolve-Path $uprojectPath).Path
+function Resolve-PackageManager($ProjectDir, $Config) {
+    if ($Config.package_manager -and $Config.package_manager -ne "auto") {
+        return $Config.package_manager
     }
 
-    $candidates = Get-ChildItem -Path $ProjectDir -Filter *.uproject -File
-    if ($candidates.Count -ne 1) {
-        Fail "Set uproject_file in Harness/config/project.json"
+    if (Test-Path (Join-Path $ProjectDir "pnpm-lock.yaml")) {
+        return "pnpm"
     }
 
-    return $candidates[0].FullName
+    if (Test-Path (Join-Path $ProjectDir "yarn.lock")) {
+        return "yarn"
+    }
+
+    return "npm"
 }
 
-function Resolve-EngineRoot($Config) {
-    $engineRoot = ""
-    if ($Config.build -and $Config.build.engine_root) {
-        $engineRoot = $Config.build.engine_root
-    } elseif ($env:UE_ENGINE_ROOT) {
-        $engineRoot = $env:UE_ENGINE_ROOT
-    }
-
-    if (-not $engineRoot) {
-        Fail "Set build.engine_root in Harness/config/project.json or UE_ENGINE_ROOT in the environment."
-    }
-
-    if (-not (Test-Path $engineRoot)) {
-        Fail "Engine root does not exist: $engineRoot"
-    }
-
-    return (Resolve-Path $engineRoot).Path
+function Test-CommandExists($CommandName) {
+    return $null -ne (Get-Command $CommandName -ErrorAction SilentlyContinue)
 }
 
-function Resolve-UbtPath($EngineRoot) {
-    $candidates = @(
-        (Join-Path $EngineRoot "Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.exe"),
-        (Join-Path $EngineRoot "Engine\\Binaries\\DotNET\\UnrealBuildTool.exe")
-    )
-
-    foreach ($candidate in $candidates) {
-        if (Test-Path $candidate) {
-            return (Resolve-Path $candidate).Path
-        }
+function Get-PackageJson($ProjectDir, $Config) {
+    $packageJson = if ($Config.package_json) { $Config.package_json } else { "package.json" }
+    $path = Join-Path $ProjectDir $packageJson
+    if (-not (Test-Path $path)) {
+        Fail "Missing package.json: $path"
     }
 
-    Fail "Could not find UnrealBuildTool.exe under engine root: $EngineRoot"
+    return Get-Content $path -Raw -Encoding UTF8 | ConvertFrom-Json
 }
 
-function Resolve-TargetName($Mode, $Config, $UprojectPath) {
-    $uprojectStem = [System.IO.Path]::GetFileNameWithoutExtension($UprojectPath)
-
-    if ($Mode -eq "Editor") {
-        if ($Config.build -and $Config.build.editor_target_name) {
-            return $Config.build.editor_target_name
-        }
-        return "$uprojectStem" + "Editor"
+function Resolve-ScriptName($Mode, $Config) {
+    $commands = $Config.commands
+    $key = $Mode.ToLowerInvariant()
+    if ($commands -and $commands.$key) {
+        return $commands.$key
     }
 
-    if ($Mode -eq "Game") {
-        if ($Config.build -and $Config.build.game_target_name) {
-            return $Config.build.game_target_name
-        }
-        return $uprojectStem
+    switch ($Mode) {
+        "Check" { return "check" }
+        "Typecheck" { return "typecheck" }
+        "Lint" { return "lint" }
+        "Test" { return "test" }
+        "Build" { return "build" }
+        default { return "" }
+    }
+}
+
+function Invoke-PackageManager($PackageManager, [string[]]$Arguments) {
+    if (-not (Test-CommandExists $PackageManager)) {
+        Fail "Package manager is not available on PATH: $PackageManager"
     }
 
-    return ""
+    & $PackageManager @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
 }
 
 $projectDir = Get-ProjectDir
 $config = Read-ProjectConfig
-$uprojectPath = Resolve-UprojectPath -ProjectDir $projectDir -Config $config
-$engineRoot = Resolve-EngineRoot -Config $config
-$ubtPath = Resolve-UbtPath -EngineRoot $engineRoot
-$platform = if ($config.build -and $config.build.platform) { $config.build.platform } else { "Win64" }
-$configuration = if ($config.build -and $config.build.configuration) { $config.build.configuration } else { "Development" }
+$packageManager = Resolve-PackageManager -ProjectDir $projectDir -Config $config
 
-if ($Mode -eq "ProjectFiles") {
-    & $ubtPath -ProjectFiles "-Project=$uprojectPath" -Game -Engine
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE
+Push-Location $projectDir
+try {
+    if ($Mode -eq "Install") {
+        if ($packageManager -eq "npm") {
+            if (Test-Path (Join-Path $projectDir "package-lock.json")) {
+                Invoke-PackageManager $packageManager @("ci")
+            } else {
+                Invoke-PackageManager $packageManager @("install")
+            }
+        } elseif ($packageManager -eq "pnpm") {
+            Invoke-PackageManager $packageManager @("install", "--frozen-lockfile")
+        } elseif ($packageManager -eq "yarn") {
+            Invoke-PackageManager $packageManager @("install", "--frozen-lockfile")
+        } else {
+            Fail "Unsupported package manager: $packageManager"
+        }
+
+        Write-Host "Install verification passed with $packageManager."
+        exit 0
     }
 
-    Write-Host "Project files regenerated successfully."
-    exit 0
-}
+    $package = Get-PackageJson -ProjectDir $projectDir -Config $config
+    $scriptName = Resolve-ScriptName -Mode $Mode -Config $config
+    if (-not $scriptName) {
+        Fail "No script mapping for mode: $Mode"
+    }
 
-$targetName = Resolve-TargetName -Mode $Mode -Config $config -UprojectPath $uprojectPath
-& $ubtPath $targetName $platform $configuration "-Project=$uprojectPath" -NoHotReload -WaitMutex
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
-}
+    if (-not $package.scripts -or -not $package.scripts.$scriptName) {
+        Fail "Missing package.json script for $Mode`: $scriptName"
+    }
 
-Write-Host "$Mode build verification passed for target $targetName."
+    if ($packageManager -eq "npm") {
+        Invoke-PackageManager $packageManager @("run", $scriptName)
+    } elseif ($packageManager -eq "pnpm") {
+        Invoke-PackageManager $packageManager @("run", $scriptName)
+    } elseif ($packageManager -eq "yarn") {
+        Invoke-PackageManager $packageManager @($scriptName)
+    } else {
+        Fail "Unsupported package manager: $packageManager"
+    }
+
+    Write-Host "$Mode verification passed with $packageManager script '$scriptName'."
+} finally {
+    Pop-Location
+}

@@ -6,7 +6,7 @@
     "worker_reads_state_next_and_cycle_log",
     "worker_implements_or_improves",
     "worker_runs_smallest_reasonable_verification",
-    "worker_checks_unreal_risks",
+    "worker_checks_javascript_risks",
     "worker_records_short_cycle_result",
     "worker_updates_state_snapshot_if_confirmed",
     "worker_updates_next_items_if_unresolved"
@@ -15,10 +15,14 @@
     "allowed": true,
     "requires_human_assignment": true,
     "record_in_cycle_log": true,
+    "preferred_workers": [
+      "goose"
+    ],
     "recommended_when": [
       "model_quota_exhausted",
       "context_too_large",
-      "human_requested_switch"
+      "human_requested_switch",
+      "goose_with_ollama_is_better_for_private_context"
     ],
     "new_worker_reads_first": [
       "HARNESS.md",
@@ -30,11 +34,11 @@
     ],
     "avoid_when": [
       "public_api_change",
-      "blueprint_exposed_name_change",
-      "build_cs_change",
-      "save_data_change",
-      "binary_asset_change",
-      "multi_module_refactor"
+      "package_manager_change",
+      "lockfile_regeneration",
+      "auth_or_secret_handling_change",
+      "database_migration",
+      "large_refactor"
     ]
   },
   "recording_rules": {
@@ -66,9 +70,10 @@
   },
   "stop_conditions": [
     "same_issue_repeated_twice",
+    "test_failed_twice",
     "build_failed_twice",
     "unexpected_large_diff",
-    "unsafe_public_api_or_blueprint_change",
+    "unsafe_public_api_or_package_manager_change",
     "human_stop_requested"
   ]
 }
