@@ -43,6 +43,11 @@ pnpm-debug.log*
 Thumbs.db
 .DS_Store
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # Local agent workspaces and caches
 .claude/
 

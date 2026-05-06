@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "purpose": "project_document_locations_and_reading_policy",
+  "default_docs_root": "Harness/docs",
+  "reading_policy": {
+    "read_by_default": false,
+    "read_when": [
+      "user_explicitly_requests_docs",
+      "implementation_intent_unclear",
+      "success_criteria_ambiguous",
+      "code_and_config_are_not_enough"
+    ],
+    "start_from_entry_points": true,
+    "bulk_read_all_docs": false
+  },
+  "doc_roots": [
+    {
+      "path": "Harness/docs",
+      "description": "Harness 표준 문서 루트. 설계 문서, 구현 명세, 성공 기준, 회고록.",
+      "entry_points": [
+        "Harness/docs/README.md",
+        "Harness/docs/Progress.md"
+      ]
+    }
+  ],
+  "notes": [
+    "문서가 코드, 설정, 실행 결과와 충돌하면 차이를 보고하고 문서 가정을 강제하지 않는다.",
+    "문서가 너무 크거나 팀에 별도 docs 폴더가 있으면 ProjectDocs/, Docs/, DesignDocs/ 루트를 doc_roots에 추가한다."
+  ]
+}
