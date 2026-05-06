@@ -1,33 +1,40 @@
-# Harness 설정
+# Harness Config
 
-이 폴더는 Harness가 재사용할 프로젝트 설정과 에이전트 설정을 둔다.
+This folder stores reusable project, worker, cycle, and document policy settings.
 
-- `project.json`: JavaScript 프로젝트별 검증 설정
-- `agents.json`: 지원 작업자와 각 작업자의 루트 지시 파일 매핑
-- `cycle_policy.json`: 단일 작업자 기본 사이클, 작업자 전환, 중단 규칙
+- `project.json`: JavaScript project verification settings
+- `agents.json`: supported workers and their root instruction files
+- `cycle_policy.json`: structured helper for cycle interpretation, recording, worker switching, tool policy, and stop conditions
+- `docs.json`: project document roots and on-demand read policy
 
-이 폴더는 선언적인 설정만 담는다. 사이클 로그, 긴 리뷰, 토큰, API 키, 로컬 인증 정보, 개인 경로는 여기에 저장하지 않는다.
+This folder contains declarative settings only. Do not store cycle logs, long reviews, tokens, API keys, local credentials, or personal paths here.
 
-인증과 로컬 모델 실행 설정은 각 사용자의 앱, CLI, 에이전트 환경에서 처리한다. Harness에는 토큰, API 키, 로그인 정보를 저장하지 않는다.
+Authentication and local runtime configuration belong to each user's app, CLI, or agent environment.
 
-## 주 작업자 변경
+## Primary Worker
 
-Codex 앱에서 작업하면 `AGENTS.md`가, Claude Code에서 작업하면 `CLAUDE.md`가 먼저 적용된다.
+When working in Codex, `AGENTS.md` applies first. When working in Claude Code, `CLAUDE.md` applies first.
 
-`agents.json`은 에이전트를 실행하는 설정 파일이 아니라, 어떤 작업자가 어떤 루트 지시 파일을 읽는지 알려주는 참고 설정이다.
+`agents.json` does not launch agents. It documents which worker reads which root instruction file.
 
-주 작업자를 바꾸려면 사람이 사용할 앱 또는 CLI를 바꿔서 새 세션을 시작한다.
+To switch the primary worker, the human starts a new session in the app or CLI they want to use. Switching is explicit, never automatic. When switching, record the reason and the first files the next worker should read in today's `Harness/cycles/YYYY-MM-DD.md`.
 
-작업자 전환은 자동 전환보다 사람이 명시하는 방식을 우선한다. 전환한 경우 오늘 `Harness/cycles/YYYY-MM-DD.md`에 전환 이유와 새 작업자가 먼저 볼 파일 범위를 짧게 기록한다.
+## project.json Fields
 
-## project.json 주요 필드
+- `package_json`: path to the target project's `package.json`
+- `package_manager`: one of `auto`, `npm`, `pnpm`, or `yarn`
+- `source_roots`: source root candidates
+- `test_roots`: test root candidates
+- `required_files`: files that must exist
+- `required_package_fields`: required `package.json` fields
+- `required_scripts`: npm scripts that must exist
+- `optional_scripts`: scripts that can be used when present
+- `commands`: script-name mapping used by `build_verify.ps1`
 
-- `package_json`: 대상 프로젝트의 `package.json` 경로
-- `package_manager`: `auto`, `npm`, `pnpm`, `yarn` 중 하나
-- `source_roots`: 소스 루트 후보
-- `test_roots`: 테스트 루트 후보
-- `required_files`: 반드시 존재해야 하는 파일 목록
-- `required_package_fields`: `package.json`에서 반드시 필요한 필드 목록
-- `required_scripts`: 반드시 존재해야 하는 npm scripts 목록
-- `optional_scripts`: 있으면 검증 명령에서 사용할 수 있는 scripts 목록
-- `commands`: `build_verify.ps1`에서 사용할 스크립트 이름 매핑
+## docs.json Fields
+
+- `doc_roots`: relative paths where project docs may live
+- `entry_points`: first documents agents should read when docs are needed
+- `optional_external_roots`: external doc folders that may be registered during migration
+- `read_policy`: when agents should or should not read project docs
+- `request_hints`: request text hints for docs-on-demand decisions

@@ -1,30 +1,64 @@
 {
   "version": 1,
-  "purpose": "project_document_locations_and_reading_policy",
-  "default_docs_root": "Harness/docs",
-  "reading_policy": {
-    "read_by_default": false,
-    "read_when": [
-      "user_explicitly_requests_docs",
-      "implementation_intent_unclear",
-      "success_criteria_ambiguous",
-      "code_and_config_are_not_enough"
-    ],
-    "start_from_entry_points": true,
-    "bulk_read_all_docs": false
-  },
   "doc_roots": [
-    {
-      "path": "Harness/docs",
-      "description": "Harness 표준 문서 루트. 설계 문서, 구현 명세, 성공 기준, 회고록.",
-      "entry_points": [
-        "Harness/docs/README.md",
-        "Harness/docs/Progress.md"
-      ]
-    }
+    "Harness/docs"
   ],
-  "notes": [
-    "문서가 코드, 설정, 실행 결과와 충돌하면 차이를 보고하고 문서 가정을 강제하지 않는다.",
-    "문서가 너무 크거나 팀에 별도 docs 폴더가 있으면 ProjectDocs/, Docs/, DesignDocs/ 루트를 doc_roots에 추가한다."
-  ]
+  "entry_points": [
+    "Harness/docs/README.md"
+  ],
+  "optional_external_roots": [
+    "ProjectDocs",
+    "Docs",
+    "DesignDocs"
+  ],
+  "read_policy": {
+    "default": "on_demand",
+    "read_when": [
+      "the user asks to reference design docs, specs, implementation standards, checklists, scenarios, or validation criteria",
+      "the task involves product rules, domain behavior, UX flow, API contracts, data modeling, or system design",
+      "code, config, and tests are not enough to infer implementation intent or success criteria",
+      "existing implementation may conflict with project docs"
+    ],
+    "do_not_read_when": [
+      "simple syntax error fix",
+      "clear build configuration fix",
+      "formatting, small rename, or file move",
+      "the user already gave concrete implementation criteria"
+    ]
+  },
+  "request_hints": {
+    "read": [
+      "기획",
+      "명세",
+      "구현기준",
+      "체크리스트",
+      "시나리오",
+      "검증 기준",
+      "요구사항",
+      "규칙",
+      "설계",
+      "design",
+      "spec",
+      "scenario",
+      "validation",
+      "requirements",
+      "rules",
+      "UX",
+      "UI",
+      "API",
+      "schema"
+    ],
+    "skip": [
+      "컴파일 오류",
+      "빌드 오류",
+      "포맷",
+      "리네임",
+      "파일 이동",
+      "compile error",
+      "build error",
+      "format",
+      "rename",
+      "file move"
+    ]
+  }
 }

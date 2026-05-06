@@ -5,9 +5,9 @@
     {
       "name": "harness_common",
       "path": "Harness/scripts/tools/harness_common.py",
-      "purpose": "다른 Harness 도구에서 공유하는 헬퍼 함수 모음",
-      "inputs": ["없음 (import 전용)"],
-      "outputs": ["없음 (라이브러리)"],
+      "purpose": "Shared helper functions imported by other Harness tools.",
+      "inputs": ["none; import-only helper"],
+      "outputs": ["none; library module"],
       "writes_files": false,
       "safe_by_default": true,
       "verify": "python -c \"import sys; sys.path.insert(0, 'Harness/scripts/tools'); from harness_common import find_project_root; print(find_project_root())\""
@@ -15,19 +15,42 @@
     {
       "name": "harness_context",
       "path": "Harness/scripts/tools/harness_context.py",
-      "purpose": "작업 시작 전 Harness 현황을 짧게 요약해 에이전트 컨텍스트 비용을 줄임",
-      "inputs": ["--request (선택)", "--root (선택)"],
-      "outputs": ["텍스트 또는 JSON 현황 요약"],
+      "purpose": "Print a compact Harness briefing before an agent starts work.",
+      "inputs": ["--request optional", "--root optional", "--json optional"],
+      "outputs": ["text or JSON context summary"],
       "writes_files": false,
       "safe_by_default": true,
+      "context_check": true,
       "verify": "python Harness/scripts/tools/harness_context.py --help"
+    },
+    {
+      "name": "harness_docs_check",
+      "path": "Harness/scripts/tools/harness_docs_check.py",
+      "purpose": "Check project-doc roots and evaluate the on-demand reading policy.",
+      "inputs": ["--request optional", "--root optional", "--json optional"],
+      "outputs": ["docs policy report"],
+      "writes_files": false,
+      "safe_by_default": true,
+      "context_check": true,
+      "verify": "python Harness/scripts/tools/harness_docs_check.py --help"
+    },
+    {
+      "name": "harness_doctor",
+      "path": "Harness/scripts/tools/harness_doctor.py",
+      "purpose": "Validate Harness structure, config files, and tool manifest consistency.",
+      "inputs": ["--root optional", "--json optional"],
+      "outputs": ["structure and policy consistency report"],
+      "writes_files": false,
+      "safe_by_default": true,
+      "context_check": true,
+      "verify": "python Harness/scripts/tools/harness_doctor.py --help"
     },
     {
       "name": "harness_diff_guard",
       "path": "Harness/scripts/tools/harness_diff_guard.py",
-      "purpose": "변경 파일과 JavaScript 리스크 신호를 요약해 작업 전후 위험도 파악",
-      "inputs": ["--root (선택)", "--json (선택)"],
-      "outputs": ["변경 파일 목록, 리스크 분류"],
+      "purpose": "Summarize changed files and JavaScript risk signals before finishing work.",
+      "inputs": ["--root optional", "--json optional"],
+      "outputs": ["changed files and risk classifications"],
       "writes_files": false,
       "safe_by_default": true,
       "verify": "python Harness/scripts/tools/harness_diff_guard.py --help"
@@ -35,9 +58,9 @@
     {
       "name": "harness_cycle",
       "path": "Harness/scripts/tools/harness_cycle.py",
-      "purpose": "사이클 로그 항목을 일관된 형식으로 생성",
-      "inputs": ["task_name", "--changed (반복 가능)", "--verified (반복 가능)", "--remaining (반복 가능)", "--write (파일 쓰기 활성화)", "--date (선택)"],
-      "outputs": ["사이클 로그 텍스트 또는 파일 추가"],
+      "purpose": "Create short cycle log entries in a consistent format.",
+      "inputs": ["title", "--changed repeatable", "--verified repeatable", "--remaining repeatable", "--write optional", "--date optional"],
+      "outputs": ["cycle entry text or appended cycle file"],
       "writes_files": true,
       "safe_by_default": true,
       "verify": "python Harness/scripts/tools/harness_cycle.py --help"
@@ -45,9 +68,9 @@
     {
       "name": "harness_state_check",
       "path": "Harness/scripts/tools/harness_state_check.py",
-      "purpose": "state/next/cycles 파일이 너무 크거나 오래됐는지 확인",
-      "inputs": ["--target (선택)", "--json (선택)"],
-      "outputs": ["파일별 크기·신선도 체크 결과"],
+      "purpose": "Check that state, next, and cycle files stay compact and current.",
+      "inputs": ["--target optional", "--json optional"],
+      "outputs": ["state/next/cycles size and stale-path report"],
       "writes_files": false,
       "safe_by_default": true,
       "verify": "python Harness/scripts/tools/harness_state_check.py --help"
@@ -55,12 +78,22 @@
     {
       "name": "harness_handoff",
       "path": "Harness/scripts/tools/harness_handoff.py",
-      "purpose": "작업자 전환 시 새 작업자가 먼저 읽을 최소 브리핑 생성",
-      "inputs": ["--request (선택)", "--write (파일 쓰기 활성화)", "--root (선택)"],
-      "outputs": ["브리핑 텍스트 또는 파일"],
+      "purpose": "Create a compact handoff brief for another primary worker.",
+      "inputs": ["--request optional", "--output optional", "--write optional", "--json optional"],
+      "outputs": ["handoff brief text or file"],
       "writes_files": true,
       "safe_by_default": true,
       "verify": "python Harness/scripts/tools/harness_handoff.py --help"
+    },
+    {
+      "name": "harness_verify_all",
+      "path": "Harness/scripts/tools/harness_verify_all.py",
+      "purpose": "Run the standard lightweight Harness verification bundle.",
+      "inputs": ["--root optional", "--skip-compile optional", "--json optional"],
+      "outputs": ["combined verification report"],
+      "writes_files": false,
+      "safe_by_default": true,
+      "verify": "python Harness/scripts/tools/harness_verify_all.py --help"
     }
   ]
 }

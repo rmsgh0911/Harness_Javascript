@@ -1,134 +1,149 @@
 # HARNESS.md
 
-이 문서는 JavaScript/TypeScript 프로젝트에서 Harness를 사용할 때 에이전트가 따르는 기본 운영 규칙이다.
+This file defines the default operating rules for agents working with this JavaScript/TypeScript Harness template.
 
-## 기본 원칙
+## Core Principles
 
-- 기본 모드는 단일 작업자 빠른 루프다.
-- 기본 흐름은 `구현 -> 최소 검증 -> 자기 리뷰 -> 기록`이다.
-- 외부 도구 확인이나 외부 도구 기반 검토는 기본 루프에서 실행하지 않는다.
-- 현재 요청과 직접 관련된 파일만 읽고 수정한다.
-- 추측보다 확인한 코드, 설정, 로그, 실행 결과를 우선한다.
-- 사용자가 만든 변경이나 관련 없는 생성물을 되돌리지 않는다.
+- Default mode is one fast primary worker.
+- Default flow is `implement -> minimal verification -> self-review -> record`.
+- Do not run external review, external agent checks, or summary agents in the default loop.
+- Read and edit only the files that are directly relevant to the current request.
+- Prefer evidence from code, config, logs, and command output over assumptions.
+- Never revert user changes or unrelated generated files unless the user explicitly asks.
 
-## 작업 전 읽기
+## Startup Read Order
 
-1. 프로젝트 루트의 `README.md` 또는 현재 작업 상태 문서가 있으면 먼저 확인한다.
-2. `Harness/README.md`, `Harness/state.md`, `Harness/next.md`가 있으면 확인한다.
-3. 오늘 날짜의 `Harness/cycles/YYYY-MM-DD.md`가 있으면 확인한다.
-4. 작업자 전환이 명시적으로 필요하면 `Harness/config/agents.json`, `Harness/config/cycle_policy.json`을 확인한다.
-5. 사용자가 설계 문서, 명세, 성공 기준을 참고하도록 요청하거나 구현 의도가 불명확하면 `Harness/config/docs.json`을 확인하고 관련 문서만 읽는다.
-6. 현재 요청에 필요한 `package.json`, lockfile, `src/`, `app/`, `lib/`, `packages/`, `test/`, `tests/`, `config` 파일만 추가로 확인한다.
+1. Check the project root `README.md` if it exists.
+2. Read `Harness/README.md`, `Harness/state.md`, and `Harness/next.md`.
+3. If today's `Harness/cycles/YYYY-MM-DD.md` exists, skim the latest entries.
+4. If the user asks for cycles, iteration, "up to N times", or "up to N cycles", check `Harness/config/cycle_policy.json`.
+5. If the user asks to reference design docs, specs, scenarios, validation criteria, or if the implementation intent is unclear, check `Harness/config/docs.json` and read only the relevant project docs.
+6. Inspect only the `package.json`, lockfile, `src/`, `app/`, `lib/`, `packages/`, `test/`, `tests/`, `config`, or `Harness/scripts/` files needed for the current request.
 
-## 사용자 지시 해석
+## User Request Interpretation
 
-- 사용자가 짧게 지시해도 기능명, 최대 사이클 수, 성공 기준이 보이면 바로 구현과 검증을 우선한다.
-- 성공 기준이 불명확하면 현재 문맥에서 가장 자연스러운 기준을 짧게 정리한 뒤 진행한다.
-- 사용자가 "사이클", "반복", "최대 N회"처럼 말하면 Harness 사이클 작업으로 본다.
-- 최대 횟수가 있으면 넘지 않는다.
-- 최대 횟수가 없으면 기본 1회만 수행한다.
-- 기능이 성공 기준을 만족하고 더 진행할 안전한 후보가 없으면 최대 횟수 전이라도 멈춘다.
-- 새로운 근거 없이 같은 실패를 반복하지 않는다.
-- 같은 문제가 두 번 반복되거나, 빌드·테스트가 같은 이유로 두 번 실패하거나, diff가 예상 범위를 크게 넘으면 멈추고 보고한다.
+- If the user gives a clear feature name, bug, success criterion, or maximum cycle count, prioritize implementation and verification.
+- If success criteria are unclear, infer the smallest reasonable criterion from the current context and continue.
+- If the user says "cycle", "iterate", "up to N times", or "up to N cycles", treat the task as Harness cycle work.
+- A maximum cycle count is an upper bound, not a required count.
+- If no maximum is given, run one cycle by default.
+- Stop before the maximum when the success criteria are met and there is no obvious safety improvement left.
+- One cycle means `implement or improve -> minimal verification -> self-review -> short record -> decide whether to continue`.
+- Do not repeat the same failed attempt without new evidence.
+- Stop and report when the same issue repeats twice, tests or builds fail twice for the same reason, the diff becomes unexpectedly large, or a public API / package-manager risk appears.
 
-## 기능 구현 루프
+## Feature Work Loop
 
-1. 요청, 범위, 검증 방법을 짧게 정리한다.
-2. 필요한 파일만 읽고 기존 패턴을 파악한다.
-3. 구현 전 리스크를 짧게 확인한다.
-4. 기능을 최소 단위로 구현한다.
-5. 타입체크, 테스트, 린트, 빌드 중 가능한 가장 작은 명령을 실행한다.
-6. 변경 파일을 JavaScript 런타임, 번들링, 타입 안정성 관점에서 자기 리뷰한다.
-7. 안전한 저위험 개선 1건이 있으면 필요할 때만 반영한다.
-8. 자동 검증으로 확인하지 못한 브라우저 동작, 접근성, 반응형 화면, 실제 API 연동은 수동 검증 필요로 기록한다.
+1. Restate the request, scope, and verification method briefly.
+2. Read only the files needed to understand the existing pattern.
+3. Check risk before editing.
+4. Implement the smallest useful change.
+5. Run the smallest reasonable verification command: typecheck, test, lint, build, or a focused project script.
+6. Self-review the changed files for JavaScript runtime, bundling, async, and type-safety risks.
+7. Apply one focused safety improvement only if it directly reduces risk.
+8. Record manual verification needs for browser behavior, accessibility, responsive layout, or real API integration when automation cannot prove them.
 
-반복 사이클의 우선순위:
+Cycle priority:
 
-1. 요청된 기능이 실제로 동작하게 만들기
-2. 테스트 실패, 타입체크 실패, 빌드 실패 수정
-3. 기능 사용성, 빈 상태, 실패 상태, 입력 처리 보강
-4. null/undefined 체크, async 흐름, cleanup, race condition 같은 안정성 보강
-5. 기록 정리
+1. Make the requested behavior actually work.
+2. Fix test, typecheck, lint, or build failures.
+3. Cover empty states, failure states, loading states, and input handling.
+4. Add stability checks such as null/undefined handling, async cleanup, cancellation, and race-condition protection.
+5. Keep records short and current.
 
-로그 문구, 주석, 포맷 정리는 현재 기능 검증이나 디버깅을 막는 경우가 아니면 반복 사이클의 주 작업으로 삼지 않는다.
+Do not spend cycle time on wording, formatting, comments, or naming cleanup unless it blocks verification or debugging.
 
-## 기록 규칙
+## Project Docs
 
-- `cycles/YYYY-MM-DD.md`에는 시도, 결과, 다음 액션만 짧게 남긴다.
-- `state.md`는 누적 작업 일지가 아니다. 최신 확정 상태만 현재형으로 유지한다.
-- `next.md`에는 진짜 남은 일, 보류한 리스크, 사람 판단 필요 항목만 둔다.
-- 같은 내용을 `state.md`, `next.md`, `cycles/`에 중복해서 길게 남기지 않는다.
-- 템플릿 저장소 자체를 정리하는 작업에서는 실제 앱 기능 사이클 로그와 구분해서 기록한다.
+- Project design docs, implementation specs, scenarios, validation criteria, and retrospectives live under `Harness/docs/` by default.
+- `Harness/docs/Progress.md` is the only Harness document that should be written in Korean by default. It is a human-facing dashboard, not a work log. Update it briefly only after major feature completion, before commits, when direction changes, or when human confirmation is needed.
+- Keep the template migration unit small: by default, move only `HARNESS.md` and `Harness/`.
+- If docs are too large or the team already has an external docs folder, register root-level `ProjectDocs/`, `Docs/`, or `DesignDocs/` in `Harness/config/docs.json`.
+- `Harness/config/docs.json` stores doc locations and reading policy only. Do not store full design documents under `Harness/config/`.
+- Agents do not read project docs by default. Read them only when requested, when product rules or success criteria are unclear, or when code/config/tests are not enough.
+- When reading docs, start from `entry_points` and relevant sections. Do not bulk-read every document.
+- If unsure whether docs are needed, run `python Harness/scripts/tools/harness_context.py --request "<request>"` or `python Harness/scripts/tools/harness_docs_check.py --request "<request>"`.
+- If project docs conflict with code, config, tests, or command output, report the difference instead of forcing the docs assumption.
 
-권장 사이클 기록 형식:
+## Recording Rules
+
+- `cycles/YYYY-MM-DD.md` contains only short attempts, results, and next actions.
+- `state.md` is not a work log. Keep only the latest confirmed facts in present tense.
+- `next.md` contains only unresolved work, deferred risks, and human decisions needed.
+- `docs/Progress.md` contains a short Korean human summary only. Do not duplicate long content from `state.md`, `next.md`, or `cycles/`.
+- Do not duplicate the same details across `state.md`, `next.md`, and `cycles/`.
+- When editing the template repository itself, do not create real project cycle logs unless the user explicitly asks.
+
+Recommended cycle log format:
 
 ```markdown
-## HH:MM 작업명
-
-- 변경:
-- 검증:
-- 남은 것:
+## HH:MM Task Name
+- Changed:
+- Verified:
+- Remaining:
 ```
 
-## 프로젝트 문서
+## Config Files
 
-- 설계 문서, 구현 명세, 시나리오, 성공 기준, 회고록은 기본적으로 `Harness/docs/`에 둔다.
-- `Harness/docs/Progress.md`는 한국어 사람용 대시보드다. 작업 일지가 아니다. 주요 기능 완료 후, 커밋 전, 방향 전환 시, 사람 확인이 필요할 때만 간단히 갱신한다.
-- `Harness/config/docs.json`은 문서 위치와 에이전트 읽기 정책만 저장한다. 설계 문서를 직접 두지 않는다.
-- 에이전트는 기본적으로 프로젝트 문서를 읽지 않는다. 사용자가 요청하거나 코드·설정만으로 구현 의도나 성공 기준을 확인할 수 없을 때만 읽는다.
-- 문서가 코드, 설정, 실행 결과와 충돌하면 차이를 보고하고 문서 가정을 강제하지 않는다.
+- `Harness/config/cycle_policy.json` is a structured reference for cycle rules. If it conflicts with this file, `HARNESS.md` wins and the config should be updated.
+- `Harness/config/agents.json` maps supported workers to their root instruction files.
+- `Harness/config/docs.json` stores project document locations and on-demand reading policy.
+- `Harness/config/project.json` stores JavaScript package, source root, test root, script, and package-manager settings.
 
-## 도구 추가
+## Worker Switching
 
-- 반복적인 탐색, 검증, 요약, 기록 작업 비용을 줄이기 위해 작은 CLI 도구를 추가할 수 있다.
-- 도구는 `Harness/scripts/tools/`에 두는 것을 기본으로 한다.
-- 도구는 목적이 하나여야 하고 기본 동작은 읽기 전용이어야 한다.
-- 파일 쓰기는 `--write`, `--apply`, `--update` 같은 명시적 옵션이 있어야만 수행한다.
-- 도구 코드에 프로젝트별 값을 하드코딩하지 않는다. `Harness/config/project.json`이나 커맨드라인 인수를 사용한다.
-- 도구를 추가하거나 변경할 때는 `Harness/scripts/tools/tool_manifest.json`에 목적, 입력, 출력, 쓰기 동작, 검증 명령을 등록한다.
-- `--help`, dry-run, JSON 출력, 가장 작은 명령으로 새 도구를 검증한다.
-- 일회성 변환, 판단이 많이 필요한 리팩터, 불안정한 외부 상태에 의존하는 도구는 만들지 않는다.
+- Use one primary worker: Codex or Claude Code.
+- Switch workers only when the human explicitly assigns it, Codex token budget is exhausted, or context is too large.
+- Worker switching is never automatic.
+- Before switching, record the reason and the first files the next worker should read in today's `cycles/YYYY-MM-DD.md`.
+- The new worker should first read `HARNESS.md`, `Harness/state.md`, `Harness/next.md`, today's cycle log, and the current `git status/diff`.
+- Do not store credentials, API keys, tokens, or personal local paths in Harness.
 
-## 작업자 전환
+## JavaScript Cautions
 
-- 작업자는 Codex 앱 또는 Claude Code 앱 중 하나를 기본으로 사용한다.
-- Codex 토큰이 부족하거나 컨텍스트가 과밀해지면 사람이 명시한 경우에만 다른 작업자로 전환한다.
-- 작업자 전환은 자동으로 하지 않는다.
-- 전환 시 오늘 `cycles/YYYY-MM-DD.md`에 전환 이유와 새 작업자가 먼저 볼 범위를 짧게 기록한다.
-- 새 작업자는 긴 이전 대화보다 `Harness/state.md`, `Harness/next.md`, 오늘 `cycles/`, 현재 `git status/diff`를 우선 읽는다.
-- 인증 정보, API 키, 개인 로컬 경로는 Harness에 저장하지 않는다.
+- Check impact when changing `package.json`, lockfiles, `tsconfig`, bundler config, or test config.
+- Do not mix package managers. If a lockfile exists, prefer that package manager.
+- Change public APIs, export names, routes, schemas, and environment variable names only when required.
+- For async code, check failure paths, cancellation, cleanup, and duplicate-request behavior.
+- For browser code, consider loading, empty, error, keyboard-accessibility, and mobile states.
+- For server code, check input validation, auth boundaries, and whether logs expose sensitive data.
+- Treat `node_modules/`, `dist/`, `build/`, `coverage/`, and cache folders as generated outputs, not work products.
 
-## JavaScript 주의사항
+## Verification
 
-- `package.json`, lockfile, `tsconfig`, 번들러 설정 변경은 영향 범위를 함께 확인한다.
-- 패키지 매니저를 섞지 않는다. lockfile이 있으면 그 패키지 매니저를 우선한다.
-- 공개 API, export 이름, 라우트, 스키마, 환경 변수명 변경은 꼭 필요한 경우에만 한다.
-- 비동기 코드 변경 시 실패 경로, 취소, cleanup, 중복 요청 가능성을 확인한다.
-- 브라우저 코드 변경 시 로딩, 빈 상태, 오류 상태, 키보드 접근성, 모바일 레이아웃을 함께 고려한다.
-- 서버 코드 변경 시 입력 검증, 인증/인가 경계, 로그에 민감 정보가 남지 않는지 확인한다.
-- 생성물인 `node_modules/`, `dist/`, `build/`, `coverage/`, 캐시 디렉터리는 작업 산출물로 다루지 않는다.
+- Run the smallest useful build or verification command.
+- Passing `Harness/scripts/verify_project.py` alone does not prove feature success.
+- When doc policy may matter, run `python Harness/scripts/tools/harness_docs_check.py --json`.
+- For code changes, prefer the relevant real project command from `test`, `typecheck`, `lint`, or `build`.
+- For project-script verification, prefer `Harness/scripts/build_verify.cmd` or `Harness/scripts/build_verify.ps1`.
+- Browser behavior, accessibility, responsive layout, and real external API integration may require manual verification. Record that need when automation cannot prove it.
+- If a test or verification could not be run, record why.
 
-## 검증
+## Tool Additions
 
-- 가능한 가장 작은 빌드 또는 검증 명령을 실행한다.
-- `Harness/scripts/verify_project.py` 통과만으로 성공 판정을 내리지 않는다.
-- 코드 변경이 있으면 가능한 범위에서 프로젝트의 실제 `test`, `typecheck`, `lint`, `build` 중 관련 명령을 우선한다.
-- 통합 동작, 브라우저 화면, 실제 외부 API 연동은 자동 검증만으로 충분하지 않을 수 있으므로 필요한 경우 수동 확인 필요성을 기록한다.
-- 실행하지 못한 테스트나 검증이 있으면 이유를 남긴다.
+- Agents may add small CLI tools for repeated exploration, verification, summarization, or recording work.
+- Put such tools under `Harness/scripts/tools/` by default.
+- Tools should have one small purpose and be read-only by default.
+- File writes must require explicit options such as `--write`, `--apply`, or `--update`.
+- Do not hardcode project-specific values in tool code. Use `Harness/config/project.json` or command-line arguments.
+- When adding or changing a tool, update `Harness/scripts/tools/tool_manifest.json` with purpose, inputs, outputs, write behavior, and verification command.
+- Verify new or changed tools with `--help`, dry run, JSON output, or the smallest reasonable command.
+- Do not create tools for one-off transformations, judgment-heavy refactors, or unstable external state.
 
 ## Git
 
-- Git 저장소라면 작업 시작 전 `git status --short`로 현재 변경 상태를 확인한다.
-- 사용자가 만든 변경이나 현재 요청과 무관한 변경은 되돌리거나 함께 정리하지 않는다.
-- `node_modules/`, `dist/`, `build/`, `coverage/`, `.next/`, `.turbo/`, `.vite/` 같은 생성물은 커밋 대상으로 다루지 않는다.
-- 대량 rename, 포맷 전용 변경, lockfile 갱신은 요청 또는 명확한 필요가 있을 때만 진행한다.
-- 커밋은 사용자가 요청한 경우에만 수행한다.
-- 브랜치 생성, rebase, force-push, history rewrite는 사용자가 명시적으로 요청한 경우에만 한다.
-- 작업 후 `git diff --stat` 또는 필요한 파일 diff를 확인해 변경 범위가 요청과 일치하는지 검토한다.
+- If this is a Git repository, start by checking `git status --short`.
+- Do not revert user changes or unrelated changes.
+- Generated folders such as `node_modules/`, `dist/`, `build/`, `coverage/`, `.next/`, `.turbo/`, and `.vite/` are usually not commit targets.
+- Avoid large renames, format-only churn, and lockfile regeneration unless requested or clearly required.
+- Commit only when the user asks.
+- Create branches, rebase, force-push, or rewrite history only when the user explicitly asks.
+- Before finishing, inspect `git diff --stat` or the relevant diff and confirm the change scope matches the request.
 
-## 언어
+## Language
 
-- 사용자가 한국어로 요청하면 응답은 한국어로 한다.
-- Harness 기록 파일은 기본적으로 한국어로 작성한다.
-- 코드 식별자, 파일명, 클래스명, 함수명, 명령어, 로그 원문, 에러 메시지는 원문 언어를 유지한다.
-- Windows PowerShell에서 Harness의 한국어 문서를 읽거나 쓸 때는 가능한 한 `-Encoding UTF8`을 명시한다.
+- Reply to the user in the user's language.
+- Write agent-facing Harness files in English by default for migration stability.
+- The default exception is `Harness/docs/Progress.md`, which should be written in Korean because it is a human-facing project dashboard.
+- Keep code identifiers, file names, class names, function names, commands, logs, and error messages in their original language.
+- When editing non-ASCII files from Windows PowerShell, use explicit UTF-8 handling.

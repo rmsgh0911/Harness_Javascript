@@ -1,30 +1,30 @@
-# Harness 문서 폴더
+# Harness Docs
 
-이 폴더는 설계 문서, 구현 명세, 성공 기준, 회고록의 기본 위치다.
+This folder is the default location for design docs, implementation specs, scenarios, validation criteria, and retrospectives.
 
-`HARNESS.md`와 `Harness/` 폴더가 템플릿 이동 단위이므로, 문서를 여기 두면 프로젝트 간 이동이 쉽다.
+Because `HARNESS.md` and the `Harness/` folder are the normal migration unit, keeping docs here makes the template easier to move between projects.
 
-## 배치 규칙
+## Placement Rules
 
-- 운영 규칙은 루트 `HARNESS.md`에 둔다.
-- 프로젝트 참고 문서는 `Harness/docs/`에 둔다.
-- 문서가 너무 크거나 팀에 별도 docs 폴더가 있으면 `Harness/config/docs.json`에 루트를 등록한다.
-- 에이전트는 기본적으로 모든 문서를 읽지 않는다. 사용자가 요청하거나 구현 의도·성공 기준이 불명확할 때만 읽는다.
+- Operating rules live in the root `HARNESS.md`.
+- Project reference docs live in `Harness/docs/`.
+- If docs are too large or the team already has a separate docs folder, register that root in `Harness/config/docs.json`.
+- Agents do not read all docs by default. They read docs only when the user asks or when implementation intent or success criteria are unclear.
 
-## 기본 파일
+## Default Files
 
-- `Progress.md`: 현재 목표, 상태, 최근 완료, 사람 확인 필요 항목을 담은 한국어 사람용 대시보드.
+- `Progress.md`: Korean human-facing dashboard for current goal, status, recent completion, and decisions needed.
 
-`Progress.md`는 작업 일지가 아니다. 주요 기능 완료 후, 커밋 전, 방향 전환 시, 사람 확인이 필요할 때만 간단히 갱신한다.
+`Progress.md` is not a work log. Update it briefly only after major feature completion, before commits, when direction changes, or when human confirmation is needed.
 
-## 확장 후보
+## Suggested Extensions
 
-- `specs/`: 기능 명세, API 계약, 스키마 정의
-- `scenarios/`: 테스트 시나리오, 입력·출력 예시
-- `ux/`: 화면 흐름, 상태 정의, 접근성 기준
-- `validation/`: 성공 기준, 수동 검증 체크리스트
-- `references/`: 외부 참고 자료, 회고록, 실험 기록
+- `specs/`: feature specs, API contracts, schema definitions
+- `scenarios/`: test scenarios and input/output examples
+- `ux/`: screen flow, state definitions, accessibility criteria
+- `validation/`: success criteria and manual verification checklists
+- `references/`: external references, retrospectives, and experiment notes
 
-## 문서 목록
+## Document Map
 
-- `Progress.md`: 사람용 한국어 진행 현황 대시보드
+- `Progress.md`: Korean human-facing progress dashboard
